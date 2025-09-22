@@ -1,0 +1,230 @@
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aplikasi Peserta Undangan Otomatis</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Firebase compat SDK (simpel dipakai tanpa bundler) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h1><img src="logo.png" alt="Logo" class="logo"></h1>
+      <h2>APLIKASI PENGELOLA UNDANGAN</h2>
+      <ul>
+        <li><button onclick="showSection('create-event')">Buat / Tambah Acara</button></li>
+        <li><button onclick="showSection('events-list')">Daftar Acara</button></li>
+        <li><button onclick="showSection('employee-add-section')">Tambah Karyawan Tetap</button></li>
+        <li><button onclick="showSection('employee-list-section')">Daftar Karyawan Tetap</button></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <div class="top-header">
+        
+        <div class="top-menu">
+          <button id="btn_toggle_theme">🌙 Mode Gelap</button>
+        </div>
+      </div>
+
+      <div class="container">
+        <!-- Section Buat / Tambah Acara -->
+        <section id="create-event" class="content-section active">
+          <h2>Buat / Tambah Acara Baru</h2>
+          <div class="form-group">
+            <label for="evt_nama">Nama Acara:</label>
+            <input type="text" id="evt_nama" placeholder="Contoh: Rapat Walikota">
+          </div>
+          <div class="form-group">
+            <label for="evt_hari">Hari:</label>
+            <input type="text" id="evt_hari" placeholder="Contoh: Senin">
+          </div>
+          <div class="form-group">
+            <label for="evt_tanggal">Tanggal:</label>
+            <input type="date" id="evt_tanggal">
+          </div>
+          <div class="form-group">
+            <label for="evt_pukul">Pukul:</label>
+            <input type="time" id="evt_pukul">
+          </div>
+          <button id="btn_add_event" class="green-button">Tambah Acara</button>
+        </section>
+
+        <!-- Section Daftar Acara -->
+        <section id="events-list" class="content-section">
+          <h2>Daftar Acara</h2>
+          <ul id="list_events" class="event-list">
+            <!-- Daftar acara akan dimuat di sini oleh JavaScript -->
+          </ul>
+        </section>
+
+        <!-- Section Detail Acara + Peserta -->
+        <section id="event-detail" class="content-section">
+          <button id="back_to_events" class="red-button back-button"><img src="out.png" alt="out" height="15px" width="15px"> Kembali ke Daftar Acara</button>
+          <div id="detail_header" class="event-detail-header">
+            <!-- Detail acara akan dimuat di sini oleh JavaScript -->
+          </div>
+
+          <h3>Tambah Peserta</h3>
+          <div class="form-grid peserta-grid">
+            <div class="left-fields">
+              <div class="form-group">
+                <label for="p_nama">Nama Peserta:</label>
+                <input type="text" id="p_nama" placeholder="Contoh: Tony Linanto Batubara">
+              </div>
+              <div class="form-group">
+                <label for="p_jabatan">Jabatan:</label>
+                <input type="text" id="p_jabatan" placeholder="Contoh: Kepala Bidang Pengelolaan Data">
+              </div>
+              <div class="form-group">
+                <label for="p_hp">No. HP:</label>
+                <input type="text" id="p_hp" placeholder="Contoh: 083837748640">
+              </div>
+              <div class="form-group">
+                <label for="p_instansi">Asal Instansi:</label>
+                <input type="text" id="p_instansi" placeholder="Contoh: Dinas Pendidikan">
+              </div>
+              <div class="form-group">
+                <label for="p_gender">Jenis Kelamin:</label>
+                <select id="p_gender">
+                  <option value="">-- Pilih Jenis Kelamin --</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>             
+              <div class="form-group">
+                <label for="employeeSelect">Tambah Peserta Dari Karyawan Tetap:</label>
+                <select id="employeeSelect">
+                  <option value="">-- Pilih Karyawan --</option>
+                </select>
+              </div>              
+            </div>
+            <div class="form-group signature-pad-container right-signature">
+              <label>Tanda Tangan Peserta:</label>
+              <div class="canvas-wrapper" style="position: relative; display: inline-block;">
+                <canvas id="p_tanda_canvas" width="575" height="300" style="border:1px solid #2c3e50;"></canvas>
+                <img src="delete-red.png" id="clear-p-signature"
+                     style="position: absolute; bottom: 10px; right: 10px; width: 25px; height: 25px; cursor: pointer;">
+              </div>  
+            </div>
+          </div>          
+          <button id="btn_add_participant" class="green-button">Tambah Peserta</button>
+
+          <h3>Daftar Peserta</h3>
+          <div class="search-container">
+            <input type="text" id="search" placeholder="Cari peserta berdasarkan nama...">
+            <button id="btn_search" class="blue-button">Cari</button>
+          </div>
+          <div class="table-responsive">
+            <table id="participants_table">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>Nama</th>
+                  <th>Jabatan</th>
+                  <th>No. HP</th>
+                  <th>Instansi</th>
+                  <th>Jenis Kelamin</th>
+                  <th>Tanda Tangan</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>              
+              <tbody id="participants_body">
+                <!-- Peserta akan dimuat di sini oleh JavaScript -->
+              </tbody>
+            </table>
+          </div>
+          <button id="btn_print" class="yellow-button print-button">Cetak Daftar Peserta</button>
+        </section>
+
+        <!-- Section Tambah Karyawan Tetap -->
+        <section id="employee-add-section" class="content-section">
+          <h2>Tambah Karyawan Tetap</h2>
+          <div class="form-group">
+            <label for="new_emp_nama">Nama Karyawan:</label>
+            <input type="text" id="new_emp_nama" placeholder="Nama Lengkap Karyawan">
+          </div>
+          <div class="form-group">
+            <label for="new_emp_jabatan">Jabatan:</label>
+            <input type="text" id="new_emp_jabatan" placeholder="Jabatan Karyawan">
+          </div>
+          <div class="form-group">
+            <label for="new_emp_hp">No. HP:</label>
+            <input type="text" id="new_emp_hp" placeholder="Nomor Telepon Karyawan">
+          </div>
+          <div class="form-group">
+            <label for="new_emp_instansi">Asal Instansi:</label>
+            <input type="text" id="new_emp_instansi" placeholder="Instansi Karyawan">
+          </div>
+          <div class="form-group">
+            <label for="new_emp_gender">Jenis Kelamin:</label>
+            <select id="new_emp_gender">
+              <option value="">-- Pilih Jenis Kelamin --</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>          
+          <div class="form-group signature-pad-container right-signature canvas-wrapper" style="position: relative; display: inline-block;">
+            <canvas id="emp_tanda_canvas" width="1155" height="300"></canvas>
+            <img src="delete-red.png" id="clear-emp-signature"
+                 style="position: absolute; bottom: 10px; right: 10px; width: 25px; height: 25px; cursor: pointer;">
+          </div>         
+          
+          <div class="button-group">
+            <button id="btn_save_employee" class="green-button">Simpan Karyawan</button>
+            <button id="btn_cancel_employee" class="red-button">Batal</button>
+          </div>
+        </section>
+
+        <!-- Section Daftar Karyawan Tetap -->
+        <section id="employee-list-section" class="content-section">
+          <h2>Daftar Karyawan Tetap</h2>
+          <div class="table-responsive">
+            <table id="employee_list_table">
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Jabatan</th>
+                  <th>No. HP</th>
+                  <th>Instansi</th>
+                  <th>Jenis Kelamin</th>
+                  <th>Tanda Tangan</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              
+              <tbody id="employeeTableBody">
+                <!-- Daftar karyawan akan dimuat di sini oleh JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBzE3P6_DFwtqDn-xvHBOPAXz6LbBjNWsw",
+  authDomain: "daftar-acara.firebaseapp.com",
+  databaseURL: "https://daftar-acara-default-rtdb.firebaseio.com",
+  projectId: "daftar-acara",
+  storageBucket: "daftar-acara.firebasestorage.app",
+  messagingSenderId: "994998268703",
+  appId: "1:994998268703:web:7d6e64b903fb71a01f762a",
+  measurementId: "G-JYP0HS11MH"
+};
+    // =============================================
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
+  <script src="app.js"></script>
+</body>
+</html>
